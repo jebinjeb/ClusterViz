@@ -1,0 +1,46 @@
+openapi: 3.0.3
+info:
+  title: ClusterViz API 3.0
+  version: 1.0.0
+  description: This is the description of ClusterViz API.
+servers:
+  - url: http://localhost:8080/api/v1
+paths:
+  /clusters:
+    get:
+      summary: Get all clusters
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Cluster'
+  /clusters/{id}:
+    get:
+      summary: Get a cluster by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cluster'
+components:
+  schemas:
+    Cluster:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
