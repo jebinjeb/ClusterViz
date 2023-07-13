@@ -29,3 +29,8 @@
 - Additionally, ClusterViz offers insights into storage placement, allowing you to visualize how persistent volumes and storage resources are allocated to pods. This feature aids in optimizing storage utilization and ensuring that storage resources are efficiently allocated based on the requirements of your applications.
 
 - By providing a clear and interactive representation of pod scheduling and storage placement, ClusterViz empowers you to make informed decisions, enhance cluster performance, and improve resource utilization within your Kubernetes environment.
+
+## Features 
+- visualization for pod placement
+- visualization for storage replication
+- visualization for pod security & rbac
