@@ -2,7 +2,7 @@ package main
 
 import (
 	logger "github.com/sirupsen/logrus"
-	"ClusterViz/internal/pkg/server"
+	"github.com/jebinjeb/ClusterViz/internal/pkg/server"
 	"os"
 )
 
