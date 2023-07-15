@@ -15,9 +15,9 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 
-	"ClusterViz/api"
-	"ClusterViz/internal/pkg/configurations"
-	"ClusterViz/internal/pkg/handler"
+	"clusterviz/api"
+	"clusterviz/internal/pkg/configurations"
+	"clusterviz/internal/pkg/handler"
 )
 
 type API struct {
