@@ -8,3 +8,12 @@ type Cluster struct {
 	Id   *int    `json:"id,omitempty"`
 	Name *string `json:"name,omitempty"`
 }
+
+// ErrorModel defines model for ErrorModel.
+type ErrorModel struct {
+	DebugId        string                 `json:"debugId"`
+	ErrorCode      string                 `json:"errorCode"`
+	ErrorDetails   map[string]interface{} `json:"errorDetails"`
+	HttpStatusCode int                    `json:"httpStatusCode"`
+	Message        string                 `json:"message"`
+}

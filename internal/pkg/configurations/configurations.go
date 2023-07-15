@@ -3,7 +3,6 @@ package configurations
 import (
 	"github.com/kelseyhightower/envconfig"
 	gerrors "clusterviz/internal/pkg/gerror"
-	mappers "clusterviz/internal/pkg/mapper"
 )
 
 
