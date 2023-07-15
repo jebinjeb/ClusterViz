@@ -58,9 +58,9 @@ docker-build-images: docker-build
 oapi-gen:	## Generate server code with oapi-codegen for single service
 	@echo Generating server for mail server
 	@mkdir -p api
-	oapi-codegen -generate spec -package api ./openapi.yaml | gofumports > api/spec.go
-	oapi-codegen -generate types -package api ./openapi.yaml | gofumports > api/models.go
-	oapi-codegen -generate gin -package api ./openapi.yaml | gofumports > api/server.go
+	oapi-codegen -generate spec -package api ./openapi.yaml  > api/spec.go
+	oapi-codegen -generate types -package api ./openapi.yaml  > api/models.go
+	oapi-codegen -generate gin -package api ./openapi.yaml  > api/server.go
 
 certs:
 	mkdir -p hack
