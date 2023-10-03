@@ -38,7 +38,11 @@ func New() (*API, error) {
 		return nil, err
 	}
 
-	eAccHandler := handler.NewEndpointHandler(conf) // Create an instance of the endpoint handler
+	eAccHandler, err := handler.NewEndPointHandler(conf)
+	if err != nil {
+    	log.Error("Error creating EndPointHandler:", err)
+    	return nil,err
+	}
 
 	return &API{
 		conf:          conf,

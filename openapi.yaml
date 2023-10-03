@@ -112,6 +112,75 @@ paths:
               "$ref": "#/components/headers/X-Rate-Limit-Reset"
             X-Requset-ID:
               "$ref": "#/components/headers/X-Requset-ID"
+/clusterviz:
+    get:
+      summary: Get cluster visualization data
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deployments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        namespace:
+                          type: string
+                        deploymentName:
+                          type: string
+                        replicas:
+                          type: integer
+                        nodes:
+                          type: array
+                          items:
+                            type: string
+                        livenessProbe:
+                          type: object
+                          properties:
+                            containerName:
+                              type: string
+                            failureThreshold:
+                              type: integer
+                        readinessProbe:
+                          type: object
+                          properties:
+                            containerName:
+                              type: string
+                            failureThreshold:
+                              type: integer
+                  replicaSets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        namespace:
+                          type: string
+                        replicaSetName:
+                          type: string
+                        replicas:
+                          type: integer
+                        nodes:
+                          type: array
+                          items:
+                            type: string
+                        livenessProbe:
+                          type: object
+                          properties:
+                            containerName:
+                              type: string
+                            failureThreshold:
+                              type: integer
+                        readinessProbe:
+                          type: object
+                          properties:
+                            containerName:
+                              type: string
+                            failureThreshold:
+                              type: integer
 components:
   schemas:
     Cluster:
