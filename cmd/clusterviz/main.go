@@ -1,30 +1,18 @@
 package main
 
 import (
-	"flag"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"clusterviz/internal/pkg/server"
 	"net/http"
 )
 
 func main() {
-	var kubeconfigPath string
-	flag.StringVar(&kubeconfigPath, "kubeconfig", "C:\\Users\\Administrator\\.kube\\config", "Path to the kubeconfig file")
-	flag.Parse()
-
 	// Create Kubernetes clientset
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
-	if err != nil {
-		panic("Error building kubeconfig: " + err.Error())
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic("Error creating Kubernetes client: " + err.Error())
-	}
-
+	clientset, err := server.NewClientset()
+    if err != nil {
+        panic("Error creating Kubernetes client: " + err.Error())
+    }
 	// Create API instance with the clientset
 	api := server.NewAPI(clientset)
 
@@ -42,8 +30,6 @@ func main() {
 		}
 		c.Next()
 	})
-
-	r.LoadHTMLFiles("C:/Program Files/Go/src/clusterviz/internal/pkg/server/cluster_viz.html")
 
 	api.Router = r
 
@@ -65,6 +51,6 @@ func main() {
 
 	// Run the server on port 8080
 	if err := r.Run(":8080"); err != nil {
-		panic("Error starting server: " + err.Error())
+		fmt.Println("Error starting server: " + err.Error())
 	}
 }
