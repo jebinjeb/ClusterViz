@@ -1,121 +1,99 @@
 package server
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"net/http"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
-	"time"
+    "fmt"
+    "net/http"
+    "os"
+    "path/filepath"
 
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+    "github.com/gin-gonic/gin"
+    "k8s.io/client-go/kubernetes"
+    "k8s.io/client-go/tools/clientcmd"
 
-	"clusterviz/api"
-	"clusterviz/internal/pkg/configurations"
-	"clusterviz/internal/pkg/handler"
+    "clusterviz/internal/pkg/handler"
 )
 
 type API struct {
-	conf        *configurations.ServiceConfigurations
-	eAccHandler *handler.EndPointHandler
-	Router      *gin.Engine
-	server      *http.Server
-
-	mutex         sync.Mutex
-	isRunning     bool
-	name          string
-	waitTimeInSec int64
+    clientset *kubernetes.Clientset
+    Router    *gin.Engine
 }
 
-func New() (*API, error) {
-	conf, err := configurations.GetServiceConfigurations()
+func NewAPI(clientset *kubernetes.Clientset) *API {
+    api := &API{
+        clientset: clientset,
+        Router:    gin.Default(),
+    }
+    api.setupRoutes()
+    return api
+}
+
+func (api *API) setupRoutes() {
+    api.Router.GET("/clusterviz", api.GetClusterViz)
+}
+
+func NewClientset() (*kubernetes.Clientset, error) {
+    homeDir, err := os.UserHomeDir()
+    if err != nil {
+        return nil, err
+    }
+
+    kubeconfigPath := filepath.Join(homeDir, ".kube", "config")
+    if _, err := os.Stat(kubeconfigPath); os.IsNotExist(err) {
+        return nil, fmt.Errorf("kubeconfig file not found at %s", kubeconfigPath)
+    }
+
+    config, err := clientcmd.BuildConfigFromFlags("", kubeconfigPath)
+    if err != nil {
+        return nil, err
+    }
+
+    clientset, err := kubernetes.NewForConfig(config)
+    if err != nil {
+        return nil, err
+    }
+
+    return clientset, nil
+}
+
+func (api *API) GetClusterViz(c *gin.Context) {
+	// Use functions from replica.go and deployment.go to get the required information
+	replicaInfo, err := handler.GetReplicaCount()
 	if err != nil {
-		return nil, err
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	eAccHandler, err := handler.NewEndPointHandler(conf)
+	deploymentsInfo, err := handler.GetDeploymentCount()
 	if err != nil {
-    	log.Error("Error creating EndPointHandler:", err)
-    	return nil,err
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
-	return &API{
-		conf:          conf,
-		eAccHandler:   eAccHandler,
-		mutex:         sync.Mutex{},
-		isRunning:     false,
-		name:          "ClusterViz Server",
-		waitTimeInSec: 10,
-	}, nil
-}
+	handler.PrintDeploymentInfo(deploymentsInfo)
+	handler.PrintReplicaSetInfo(replicaInfo)
 
-func (app *API) Start() {
-	app.Router = gin.New()
+	nodesInfo, err := handler.GetNodeInfo()
+    if err != nil {
+		fmt.Println("Error getting node info:", err)
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+    }
+	
+    handler.PrintNodeInfo(nodesInfo)
 
-	// Add CORS middleware
-	config := cors.DefaultConfig()
-	app.Router.Use(cors.New(config))
-
-	api.RegisterHandlersWithOptions(app.Router, app.eAccHandler,
-		api.GinServerOptions{BaseURL: "/api/v1", Middlewares: []api.MiddlewareFunc{api.MiddlewareFunc(handler.Authenticator())}})
-	log.Infof("Starting %s Server...", app.name)
-	app.startGinServer(app.conf)
-	log.Infof("%s server started successfully at %s...", app.name, app.conf.Port)
-
-	// Wait for interrupt signal to gracefully shutdown the server
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Infof("Shutting down %s server...", app.name)
-	app.StopServer()
-}
-
-func (app *API) startGinServer(conf *configurations.ServiceConfigurations) {
-	app.server = &http.Server{
-		Addr:              fmt.Sprintf(":%s", conf.Port),
-		Handler:           app.Router,
-		ReadHeaderTimeout: time.Second * time.Duration(conf.HeaderReadTimeout),
+	// Create the response map with custom headings
+	response := map[string]interface{}{
+		"ClusterVisualization": gin.H{
+			"Deployments": deploymentsInfo,
+			"ReplicaSets": replicaInfo,
+			//"Nodes": nodesInfo,
+		},
 	}
+	handler.NodeInfoHandler(c.Writer, c.Request, nodesInfo)
+	// Set the content type header to JSON
+	c.Header("Content-Type", "application/json")
+	
+	// Convert the map to JSON and send it in the response
+	c.JSON(http.StatusOK, response)
 
-	// Initializing the server in a goroutine so that it won't block the graceful shutdown handling below
-	go func() {
-		app.mutex.Lock()
-		app.isRunning = true
-		app.mutex.Unlock()
-
-		if err := app.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Errorf("listen: %s\n", err)
-			os.Exit(1)
-		}
-
-		app.mutex.Lock()
-		app.isRunning = false
-		app.mutex.Unlock()
-	}()
 }
-
-func (app *API) StopServer() {
-	// The context is used to inform the server it has 5 seconds to finish the request it is currently handling
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(app.waitTimeInSec)*time.Second)
-	defer cancel()
-
-	if err := app.server.Shutdown(ctx); err != nil {
-		log.Errorf("Server Shutdown: %v", err)
-	}
-
-	log.Infof("Server stopped successfully ...")
-}
-
-// IsRunning returns true if the server is Listening, false otherwise.
-func (app *API) IsRunning() bool {
-	app.mutex.Lock()
-	defer app.mutex.Unlock()
-
-	return app.isRunning
-}
-

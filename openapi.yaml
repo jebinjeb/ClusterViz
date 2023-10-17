@@ -5,6 +5,7 @@ info:
   description: This is the description of ClusterViz API.
 servers:
   - url: http://localhost:8080/api/v1
+x-go-package: "C:/Program Files/Go/src/clusterviz/api"
 paths:
   /clusters:
     get:
@@ -39,8 +40,8 @@ paths:
               "$ref": "#/components/headers/X-Rate-Limit-Remaining"
             X-Rate-Limit-Reset:
               "$ref": "#/components/headers/X-Rate-Limit-Reset"
-            X-Requset-ID:
-              "$ref": "#/components/headers/X-Requset-ID"
+            X-Request-ID:
+              "$ref": "#/components/headers/X-Request-ID"
         "400":
           description: "bad request"
           content:
@@ -55,8 +56,8 @@ paths:
               "$ref": "#/components/headers/X-Rate-Limit-Remaining"
             X-Rate-Limit-Reset:
               "$ref": "#/components/headers/X-Rate-Limit-Reset"
-            X-Requset-ID:
-              "$ref": "#/components/headers/X-Requset-ID"
+            X-Request-ID:
+              "$ref": "#/components/headers/X-Request-ID"
   /clusters/{id}:
     get:
       summary: Get a cluster by ID
@@ -94,8 +95,8 @@ paths:
               "$ref": "#/components/headers/X-Rate-Limit-Remaining"
             X-Rate-Limit-Reset:
               "$ref": "#/components/headers/X-Rate-Limit-Reset"
-            X-Requset-ID:
-              "$ref": "#/components/headers/X-Requset-ID"
+            X-Request-ID:
+              "$ref": "#/components/headers/X-Request-ID"
         "400":
           description: "bad request"
           content:
@@ -110,9 +111,9 @@ paths:
               "$ref": "#/components/headers/X-Rate-Limit-Remaining"
             X-Rate-Limit-Reset:
               "$ref": "#/components/headers/X-Rate-Limit-Reset"
-            X-Requset-ID:
-              "$ref": "#/components/headers/X-Requset-ID"
-/clusterviz:
+            X-Request-ID:
+              "$ref": "#/components/headers/X-Request-ID"
+  /clusterviz:
     get:
       summary: Get cluster visualization data
       responses:
@@ -163,26 +164,43 @@ paths:
                           type: string
                         replicas:
                           type: integer
+                        nodeScheduling:
+                          type: string
                         nodes:
-                          type: array
-                          items:
+                          type: string
+                  nodes:
+                    type: string
+                  numberOfPods:
+                      type: integer
+                  pods:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
                             type: string
-                        livenessProbe:
-                          type: object
-                          properties:
-                            containerName:
-                              type: string
-                            failureThreshold:
-                              type: integer
-                        readinessProbe:
-                          type: object
-                          properties:
-                            containerName:
-                              type: string
-                            failureThreshold:
-                              type: integer
+                          conditions:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                type:
+                                  type: string
+                                status:
+                                  type: string
+                                lastProbeTime:
+                                  $ref: '#/components/schemas/metav1.Time'
+                                lastTransitionTime:
+                                  $ref: '#/components/schemas/metav1.Time'    
 components:
   schemas:
+    metav1.Time:
+      type: object
+      properties:
+        type:
+          type: string
+        format:
+          type: string
     Cluster:
       type: object
       properties:
@@ -232,7 +250,7 @@ components:
       description: "The number of seconds to wait before retrying"
       schema:
         type: "integer"
-    X-Requset-ID:
+    X-Request-ID:
       description: "The request id used to track the operation"
       schema:
         type: "string"
