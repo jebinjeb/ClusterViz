@@ -10,6 +10,7 @@ type ServiceConfigurations struct {
 	LogLevel           string `envconfig:"LOG_LEVEL" default:"info"`
 	Port               string `envconfig:"PORT" default:"9090"`
 	HeaderReadTimeout int
+	DBConnectionString string `envconfig:"DB_CONNECTION_STRING"`
 }
 
 func GetServiceConfigurations() (serviceConf *ServiceConfigurations, err error) {
