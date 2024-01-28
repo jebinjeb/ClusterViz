@@ -38,3 +38,4 @@
 - Network Topology: CloudViz offers a network topology view that displays the connections and communication patterns between different pods and services in your cluster. It helps you understand the network architecture and dependencies, allowing you to troubleshoot networking issues and optimize network performance.
 - Application Dependency Mapping: CloudViz allows you to visualize the dependencies between applications and services running in your cluster. It helps you identify the relationships and interactions between different components, facilitating troubleshooting, impact analysis, and understanding of application dependencies.
   
+
